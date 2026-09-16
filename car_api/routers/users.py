@@ -1,25 +1,62 @@
 from fastapi import APIRouter, status
 
+from car_api.db import USERS
+from car_api.schemas.users import (
+    UserSchema,
+    UserListPublicSchema,
+    UserPublicSchema,
+)
+
 router = APIRouter()
 
+# C-R-U-D operations
+
+# CREATE new user
+@router.post(
+    path='/',
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserPublicSchema,
+)
+async def create_user(user: UserSchema):
+    id_for_new_user = 1
+    if len(USERS) > 0:
+        id_for_new_user = USERS[-1].__dict__.get('id') + 1
+
+    user_with_id = UserPublicSchema(**user.model_dump(), id=id_for_new_user)
+    USERS.append(user_with_id)
+    return user_with_id
+
+
+
+# READ all existing users
 @router.get(
-        path='/', 
-        status_code=status.HTTP_200_OK,
-    )
+    path='/', 
+    status_code=status.HTTP_200_OK,
+    response_model=UserListPublicSchema,
+)
 async def list_users():
     return {
-        'users': [
-            {
-                'id': 1,
-                'email': 'pycodebr@gmail.com',
-            },
-            {
-                'id': 2,
-                'email': 'joao@gmail.com',
-            },
-            {
-                'id': 3,
-                'email': 'mario@gmail.com',
-            },
-        ]
+        'users': USERS
     }
+
+# UPDATE an exixting user
+@router.put(
+    path='/{user_id}',
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserPublicSchema,
+)
+async def update_user(user_id: int, user: UserSchema):
+    user_with_id = UserPublicSchema(**user.model_dump(), id=user_id)
+
+    USERS[user_id - 1] = user_with_id
+
+    return user_with_id
+
+# DELETE an existing user
+@router.delete(
+    path='/{user_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_user(user_id: int):
+    del USERS[user_id - 1]
+    return
