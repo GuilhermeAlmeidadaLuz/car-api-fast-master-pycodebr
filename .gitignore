@@ -36,3 +36,6 @@ archive.zip
 
 # enviroment variables
 .env
+
+# database file
+*.db
